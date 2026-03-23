@@ -1,0 +1,15 @@
+# Ignore virtual environments
+halo_env/
+venv/
+
+# Ignore IDE settings
+.idea/
+
+# Ignore system files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment variables
+.env

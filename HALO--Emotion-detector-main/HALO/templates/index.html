@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Emotion Detection</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F3F4F6;
+            padding: 30px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .left-panel, .right-panel {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .left-panel img {
+            width: 100%;
+            border-radius: 12px;
+            border: 4px solid #673AB7;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        #emotion {
+            font-size: 22px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #673AB7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        #recommendation-box {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #emotion-text {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        #message-text {
+            font-size: 16px;
+            color: #555;
+        }
+
+        #cover-image {
+            margin-top: 15px;
+            width: 80%;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #recommend-link button {
+            background-color: #2196F3;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>HALO AI Therapist 🤖</h1>
+
+    <div class="container">
+        <!-- Left: Webcam Feed -->
+        <div class="left-panel">
+            <img id="video" src="{{ url_for('video_feed') }}">
+        </div>
+
+        <!-- Right: Emotion & Recommendation -->
+        <div class="right-panel">
+            <div>
+                <p id="emotion">Waiting for detection...</p>
+
+                <div id="recommendation-box">
+                    <h3 id="emotion-text"></h3>
+                    <p id="message-text"></p>
+                    <img id="cover-image" src="" alt="Recommendation">
+                    <div class="button-row">
+                        <a id="recommend-link" href="#" target="_blank">
+                            <button>Open Recommendation</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button onclick="clearEmotion()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateEmotion() {
+            fetch('/get_emotion')
+                .then(response => response.json())
+                .then(data => {
+                    const emotion = data.emotion;
+                    const recommendation = data.recommendation;
+
+                    document.getElementById("emotion").innerText = emotion ? `Mood: ${emotion}` : "Waiting for detection...";
+
+                    if (recommendation && emotion !== "Uncertain" && emotion !== "No face detected") {
+                        document.getElementById("recommendation-box").style.display = "block";
+                        document.getElementById("emotion-text").innerText = `Detected Emotion: ${emotion}`;
+                        document.getElementById("message-text").innerText = recommendation.message;
+                        document.getElementById("recommend-link").href = recommendation.link;
+                        document.getElementById("cover-image").src = recommendation.cover_image || "";
+                    } else {
+                        document.getElementById("recommendation-box").style.display = "none";
+                    }
+                });
+        }
+
+        setInterval(updateEmotion, 2000);
+
+        function clearEmotion() {
+            fetch('/clear', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("emotion").innerText = "Waiting for detection...";
+                    document.getElementById("recommendation-box").style.display = 'none';
+                });
+        }
+    </script>
+
+</body>
+</html>
